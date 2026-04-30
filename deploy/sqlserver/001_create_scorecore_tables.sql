@@ -278,7 +278,10 @@ CREATE TABLE [dbo].[scoring_imagescore] (
     [project_id] int NOT NULL,
     CONSTRAINT [FK_scoring_imagescore_file] FOREIGN KEY ([file_id]) REFERENCES [dbo].[scoring_imagefile] ([id]) ON DELETE CASCADE,
     CONSTRAINT [FK_scoring_imagescore_user] FOREIGN KEY ([user_id]) REFERENCES [dbo].[auth_user] ([id]) ON DELETE CASCADE,
-    CONSTRAINT [FK_scoring_imagescore_project] FOREIGN KEY ([project_id]) REFERENCES [dbo].[scoring_project] ([id]) ON DELETE CASCADE,
+    -- SQL Server rejects the second cascade path Project -> ImageScore because
+    -- Project already cascades through ImageFile -> ImageScore. Keep this FK
+    -- restrictive and let file_id handle score cleanup for project deletes.
+    CONSTRAINT [FK_scoring_imagescore_project] FOREIGN KEY ([project_id]) REFERENCES [dbo].[scoring_project] ([id]) ON DELETE NO ACTION,
     CONSTRAINT [CK_scoring_imagescore_data_json] CHECK (ISJSON([data]) = 1)
 );
 CREATE INDEX [IX_scoring_imagescore_file] ON [dbo].[scoring_imagescore] ([file_id]);
