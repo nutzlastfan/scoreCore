@@ -14,6 +14,41 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+function Normalize-PublicUrl {
+    param([string]$Value)
+
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return "/"
+    }
+
+    $normalized = $Value.Trim()
+    if (-not $normalized.StartsWith("/")) {
+        $normalized = "/$normalized"
+    }
+    if (-not $normalized.EndsWith("/")) {
+        $normalized = "$normalized/"
+    }
+
+    return $normalized
+}
+
+function Write-FrontendWebConfig {
+    param(
+        [string]$TemplatePath,
+        [string]$TargetPath,
+        [string]$PublicUrl
+    )
+
+    $publicPath = $PublicUrl.Trim("/")
+    $publicPathRegex = [regex]::Escape($publicPath)
+    $content = Get-Content -Path $TemplatePath -Raw
+    $content = $content.Replace("__PUBLIC_URL__", $PublicUrl)
+    $content = $content.Replace("__PUBLIC_PATH_REGEX__", $publicPathRegex)
+    Set-Content -Path $TargetPath -Value $content -Encoding UTF8
+}
+
+$PublicUrl = Normalize-PublicUrl $PublicUrl
+
 if ($RepoRoot -eq "") {
     if ($PSScriptRoot -ne "") {
         $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
@@ -76,7 +111,13 @@ REACT_APP_DOCKER_ENABLED=0
     if ($StaticOnlyWebConfig) {
         $webConfigName = "frontend.static.web.config"
     }
-    Copy-Item (Join-Path $repoRoot "deploy\windows\$webConfigName") (Join-Path $frontendTarget "web.config") -Force
+    $webConfigTemplate = Join-Path $repoRoot "deploy\windows\$webConfigName"
+    $webConfigTarget = Join-Path $frontendTarget "web.config"
+    if ($StaticOnlyWebConfig) {
+        Copy-Item $webConfigTemplate $webConfigTarget -Force
+    } else {
+        Write-FrontendWebConfig -TemplatePath $webConfigTemplate -TargetPath $webConfigTarget -PublicUrl $PublicUrl
+    }
 }
 
 robocopy $repoRoot $backendTarget /MIR `

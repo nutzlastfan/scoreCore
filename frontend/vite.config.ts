@@ -3,6 +3,14 @@ import EntryShakingPlugin from "vite-plugin-entry-shaking";
 import react from "@vitejs/plugin-react-swc";
 import obfuscatorPlugin from "vite-plugin-javascript-obfuscator";
 
+const normalizePublicBase = (value?: string) => {
+  if (!value) {
+    return "/";
+  }
+
+  return value.endsWith("/") ? value : `${ value }/`;
+};
+
 // https://vitejs.dev/config/
 export default ({mode}) => {
   const env = {...process.env, ...loadEnv(mode, process.cwd(), "")};
@@ -13,7 +21,7 @@ export default ({mode}) => {
   );
 
   return defineConfig({
-    base: env.PUBLIC_URL || "/",
+    base: normalizePublicBase(env.PUBLIC_URL),
     plugins: [
       react()
     ],

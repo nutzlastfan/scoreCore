@@ -6,6 +6,8 @@ import CoreAuthProvider from '../hooks/CoreAuthProvider';
 import CoreRoutes from './CoreRoutes'
 import { ModalProvider } from './components/modal/coreModalContext';
 
+const publicUrl = process.env.PUBLIC_URL || "/";
+const routerBasename = publicUrl.replace(/\/+$/, "") || "/";
 
 function App() {
   return (
@@ -14,7 +16,7 @@ function App() {
       <ModalProvider>
         <Container fluid={true} style={{minWidth: "550px"}}>
           <Row>
-            <BrowserRouter basename={ process.env.PUBLIC_URL || "/" }>
+            <BrowserRouter basename={ routerBasename }>
               <CoreAuthProvider>
                 <CoreRoutes />
               </CoreAuthProvider>
