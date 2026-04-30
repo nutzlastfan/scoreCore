@@ -52,6 +52,8 @@ Point the IIS site root at `C:\scorecore\app\frontend\dist` and copy `deploy/win
 
 Build from a local NTFS path such as `C:\scorecore` or `D:\scorecore`. Native npm binaries such as `esbuild.exe` can hang or fail on mapped/network-style drives depending on Windows policy and antivirus settings.
 
+`frontend.web.config` needs IIS URL Rewrite and ARR for the reverse proxy rules. Use `frontend.static.web.config` as `web.config` for a static-only smoke test before those modules are installed.
+
 ## SQL Server configuration
 
 Use `django.windows.env.example` as the starting point. The important values are:
