@@ -6,6 +6,11 @@ import obfuscatorPlugin from "vite-plugin-javascript-obfuscator";
 // https://vitejs.dev/config/
 export default ({mode}) => {
   const env = {...process.env, ...loadEnv(mode, process.cwd(), "")};
+  const clientEnv = Object.fromEntries(
+    Object.entries(env).filter(([key]) =>
+      key.startsWith("REACT_APP_") || ["DEBUG", "NODE_ENV", "PUBLIC_URL"].includes(key)
+    )
+  );
 
   return defineConfig({
     base: "/",
@@ -15,7 +20,7 @@ export default ({mode}) => {
     build: {
     },
     define: {
-      "process.env": env
+      "process.env": clientEnv
     },
     server: {
       host: env.HOST || "localhost",

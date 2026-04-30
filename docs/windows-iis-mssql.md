@@ -50,6 +50,8 @@ npm run build
 
 Point the IIS site root at `C:\scorecore\app\frontend\dist` and copy `deploy/windows/frontend.web.config` into that folder as `web.config`.
 
+Build from a local NTFS path such as `C:\scorecore` or `D:\scorecore`. Native npm binaries such as `esbuild.exe` can hang or fail on mapped/network-style drives depending on Windows policy and antivirus settings.
+
 ## SQL Server configuration
 
 Use `django.windows.env.example` as the starting point. The important values are:
