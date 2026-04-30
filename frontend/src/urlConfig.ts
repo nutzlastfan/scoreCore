@@ -6,13 +6,16 @@ export const getBackendBaseUrl = () => {
 };
 
 export const backendUrl = (...parts: Array<string | number | undefined | null>) => {
-  const path = parts
+  const cleanParts = parts
     .filter((part) => part !== undefined && part !== null && `${ part }` !== "")
-    .map((part) => trimSlashes(`${ part }`))
+    .map((part) => `${ part }`);
+  const hasTrailingSlash = cleanParts.length > 0 && cleanParts[cleanParts.length - 1].endsWith("/");
+  const path = cleanParts
+    .map((part) => trimSlashes(part))
     .filter((part) => part !== "")
     .join("/");
 
-  const pathWithSlash = `/${ path }`;
+  const pathWithSlash = `/${ path }${ hasTrailingSlash && path ? "/" : "" }`;
   const baseUrl = getBackendBaseUrl();
   return baseUrl ? `${ baseUrl }${ pathWithSlash }` : pathWithSlash;
 };
