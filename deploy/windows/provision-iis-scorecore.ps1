@@ -63,6 +63,19 @@ foreach ($name in $aclTargets) {
     & icacls $path /grant "${identity}:(OI)(CI)M" /T | Out-Null
 }
 
+foreach ($name in @("media", "static")) {
+    $physicalPath = Join-Path $RootPath $name
+    $existingVirtualDirectory = Get-WebVirtualDirectory -Site $SiteName |
+        Where-Object { $_.path -eq "/$name" }
+
+    if (-not $existingVirtualDirectory) {
+        New-WebVirtualDirectory -Site $SiteName -Name $name -PhysicalPath $physicalPath | Out-Null
+    } elseif ($existingVirtualDirectory.physicalPath -ne $physicalPath) {
+        Remove-WebVirtualDirectory -Site $SiteName -Name $name
+        New-WebVirtualDirectory -Site $SiteName -Name $name -PhysicalPath $physicalPath | Out-Null
+    }
+}
+
 Write-Host "ScoreCore IIS site is ready."
 Write-Host "Site:      $SiteName"
 Write-Host "AppPool:   $AppPoolName"
