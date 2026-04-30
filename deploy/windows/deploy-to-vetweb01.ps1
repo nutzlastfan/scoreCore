@@ -4,9 +4,10 @@ param(
     [string]$NodeRoot = "D:\OHIF-FUBerlin-fuberlinV3\tools\node20\node-v20.20.2-win-x64",
     [string]$BuildWorkDir = "D:\scorecore-frontend-build",
     [string]$RepoRoot = "",
-    [string]$FrontendUrl = "http://vetweb01:8088",
-    [string]$BackendUrl = "http://vetweb01:8088",
-    [string]$WebSocketUrl = "ws://vetweb01:8088",
+    [string]$FrontendUrl = "https://vetweb01.vetmed.fu-berlin.de/scoring",
+    [string]$BackendUrl = "https://vetweb01.vetmed.fu-berlin.de",
+    [string]$WebSocketUrl = "wss://vetweb01.vetmed.fu-berlin.de",
+    [string]$PublicUrl = "/scoring/",
     [switch]$SkipFrontendBuild,
     [switch]$StaticOnlyWebConfig
 )
@@ -49,6 +50,7 @@ if (-not $SkipFrontendBuild) {
 
     @"
 SKIP_PREFLIGHT_CHECK=false
+PUBLIC_URL=$PublicUrl
 REACT_APP_FRONTEND_URL=$FrontendUrl
 REACT_APP_BACKEND_URL=$BackendUrl
 REACT_APP_WS_URL=$WebSocketUrl

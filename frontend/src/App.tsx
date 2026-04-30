@@ -14,7 +14,7 @@ function App() {
       <ModalProvider>
         <Container fluid={true} style={{minWidth: "550px"}}>
           <Row>
-            <BrowserRouter>
+            <BrowserRouter basename={ process.env.PUBLIC_URL || "/" }>
               <CoreAuthProvider>
                 <CoreRoutes />
               </CoreAuthProvider>

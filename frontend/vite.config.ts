@@ -13,7 +13,7 @@ export default ({mode}) => {
   );
 
   return defineConfig({
-    base: "/",
+    base: env.PUBLIC_URL || "/",
     plugins: [
       react()
     ],
