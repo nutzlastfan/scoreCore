@@ -4,6 +4,9 @@ param(
     [string]$NodeRoot = "D:\OHIF-FUBerlin-fuberlinV3\tools\node20\node-v20.20.2-win-x64",
     [string]$BuildWorkDir = "D:\scorecore-frontend-build",
     [string]$RepoRoot = "",
+    [string]$FrontendUrl = "http://vetweb01:8088",
+    [string]$BackendUrl = "http://vetweb01:8088",
+    [string]$WebSocketUrl = "ws://vetweb01:8088",
     [switch]$SkipFrontendBuild,
     [switch]$StaticOnlyWebConfig
 )
@@ -43,6 +46,15 @@ if (-not $SkipFrontendBuild) {
     if ($LASTEXITCODE -ge 8) {
         throw "Frontend copy to build directory failed with robocopy exit code $LASTEXITCODE"
     }
+
+    @"
+SKIP_PREFLIGHT_CHECK=false
+REACT_APP_FRONTEND_URL=$FrontendUrl
+REACT_APP_BACKEND_URL=$BackendUrl
+REACT_APP_WS_URL=$WebSocketUrl
+REACT_APP_BASE_WS=$WebSocketUrl
+REACT_APP_DOCKER_ENABLED=0
+"@ | Set-Content -Path (Join-Path $BuildWorkDir ".env.production") -Encoding ASCII
 
     $env:PATH = "$NodeRoot;$env:PATH"
     Push-Location $BuildWorkDir

@@ -38,6 +38,13 @@ notepad django.env
 
 For production, run `deploy/windows/start-backend.ps1` through a service wrapper such as NSSM or your standard Windows service tooling.
 
+With NSSM installed, the included helper can create the backend service:
+
+```powershell
+choco install nssm -y
+.\deploy\windows\install-backend-service.ps1 -ProjectRoot C:\inetpub\scorecore\backend -Reinstall
+```
+
 ## Frontend setup
 
 ```powershell

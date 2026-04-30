@@ -1,5 +1,5 @@
 param(
-    [string]$ProjectRoot = "C:\scorecore\app",
+    [string]$ProjectRoot = "C:\inetpub\scorecore\backend",
     [string]$HostAddress = "127.0.0.1",
     [int]$Port = 8181
 )
