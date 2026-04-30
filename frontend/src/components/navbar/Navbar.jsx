@@ -5,6 +5,7 @@ import { useAuth } from "../../../hooks/CoreAuthProvider";
 const Navbar = ({ content, act }) => {
 
   const auth = useAuth();
+  const dockerEnabled = process.env.REACT_APP_DOCKER_ENABLED !== "0";
 
   const logout = () => {
     auth.logoutAction();
@@ -21,8 +22,10 @@ const Navbar = ({ content, act }) => {
                     size="lg">Evaluate</Button>
             <Button href="/project/backup/" variant={ act === "backup" ? "info" : "primary" } className="w-100 mt-2"
                     size="lg">Backup</Button>
-            <Button href="/docker/" variant={ act === "docker" ? "info" : "primary" } className="w-100 mt-2" size="lg">Docker
-              Status</Button>
+            { dockerEnabled && (
+              <Button href="/docker/" variant={ act === "docker" ? "info" : "primary" } className="w-100 mt-2" size="lg">Docker
+                Status</Button>
+            ) }
             <Button href={ `${ process.env.REACT_APP_BACKEND_URL }/admin` } variant="primary" className="w-100 mt-2"
                     size="lg">Admin</Button>
           </>

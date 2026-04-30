@@ -352,7 +352,7 @@ class ImageFile(models.Model):
         if users:
             scores = scores.filter(user__in=users)
 
-        n = scores.distinct("user").count()
+        n = scores.values("user").distinct().count()
         if n >= 2:
 
             stddev = 0

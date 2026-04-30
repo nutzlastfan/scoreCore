@@ -10,6 +10,7 @@ from scoring.linux import extract_date_from_filename
 from scoring.models import Backup
 from scoring.serializers import BackupSerializer
 from scoring.views.viewsets.base_viewset import StandardResultsSetPagination
+from server import settings
 from server.views import RequestSuccess
 
 
@@ -57,12 +58,18 @@ class BackupViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, url_path="create", methods=["POST"])
     def create_backup(self, request):
+        if not settings.DBBACKUP_CONNECTORS:
+            return RequestSuccess({"warning": "Database backup is not configured for this database engine."})
+
         call_command("dbbackup")
         call_command("readbackups")
         return self.list(request)
 
     @action(detail=True, url_path="restore", methods=["POST"])
     def restore_backup(self, request, pk):
+        if not settings.DBBACKUP_CONNECTORS:
+            return RequestSuccess({"warning": "Database restore is not configured for this database engine."})
+
         backup = Backup.objects.get(pk=pk)
         call_command("dbrestore", f"--input-file={backup.name}", "--noinput")
         call_command("readbackups")

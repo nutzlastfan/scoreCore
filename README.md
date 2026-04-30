@@ -54,7 +54,7 @@ Add some URLs to your hosts-file, so they are locally available!
 
    ```sh
    cp .env.template .env
-   cp django.template django.env
+   cp django.env.template django.env
    ```
 
 
@@ -101,6 +101,11 @@ To start the local frontend server, follow these steps:
    ```
 
 This will open a browser with the frontend visible.
+
+## Windows/IIS/MSSQL
+
+This fork can be configured for Microsoft SQL Server with `DB_ENGINE=mssql`.
+See `docs/windows-iis-mssql.md` for the Windows/IIS deployment notes, example environment files, and IIS reverse-proxy configuration.
 
 [comment]: <> (## License)
 [comment]: <> (This project is licensed under the MIT License. See the LICENSE file for more details.)

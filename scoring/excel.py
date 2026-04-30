@@ -78,7 +78,7 @@ def create_xlsx(project, _data, _image_files):
     _path = get_project_evaluation_dir(str(project.pk))
     save_check_dir(_path)
 
-    _user_ids = project.get_all_scores_save().distinct("user").values_list("user__id", flat=True)
+    _user_ids = project.get_all_scores_save().values_list("user__id", flat=True).order_by("user__id").distinct()
 
     df = pd.DataFrame()
     project_name = str(project.name)

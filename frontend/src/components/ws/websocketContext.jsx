@@ -6,7 +6,8 @@ const WebSocketContext = React.createContext([{}, p => {}]);
 const WebSocketProvider = ({ children, url }) => {
 
     const getSocketUrl = useCallback(() => {
-      const ws_url = process.env.REACT_APP_BASE_WS+url;
+      const baseWsUrl = process.env.REACT_APP_BASE_WS || process.env.REACT_APP_WS_URL || "";
+      const ws_url = baseWsUrl + url;
       return new Promise(resolve => {
         setTimeout(() => {
           resolve(ws_url);

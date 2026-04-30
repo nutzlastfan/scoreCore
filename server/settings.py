@@ -1,7 +1,6 @@
+from pathlib import Path
 import os
 from datetime import timedelta
-
-from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / "subdir".
 from scoring.basics import parse_boolean, parse_int
@@ -22,7 +21,13 @@ DEBUG_PROPAGATE_EXCEPTIONS = True
 
 INTERNAL_IPS = ["127.0.0.1"]
 
-ALLOWED_HOSTS = [os.getenv("DJANGO_ALLOWED_HOSTS")]
+def env_list(name, default=""):
+    return [value.strip() for value in os.getenv(name, default).split(",") if value.strip()]
+
+
+ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
+DB_ENGINE = os.getenv("DB_ENGINE", "postgresql").lower()
+DOCKER_FEATURE_ENABLED = parse_boolean(os.getenv("DOCKER_FEATURE_ENABLED", "1"))
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -150,19 +155,46 @@ TEMPLATES = [
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_DB"),
-        "USER": os.getenv("POSTGRES_USER"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-        "HOST": os.getenv("POSTGRES_HOST"),
-        "PORT": os.getenv("POSTGRES_PORT"),
-        "CONN_HEALTH_CHECKS": False,
-        "TIME_ZONE": TIME_ZONE,
-        "CHARSET": "UTF8",
+def get_env(*names, default=None):
+    for name in names:
+        value = os.getenv(name)
+        if value not in (None, ""):
+            return value
+    return default
+
+
+if DB_ENGINE in ("mssql", "sqlserver", "sql_server"):
+    DATABASES = {
+        "default": {
+            "ENGINE": "mssql",
+            "NAME": get_env("MSSQL_DATABASE", "MSSQL_DB", "DB_NAME"),
+            "USER": get_env("MSSQL_USER", "DB_USER"),
+            "PASSWORD": get_env("MSSQL_PASSWORD", "DB_PASSWORD"),
+            "HOST": get_env("MSSQL_HOST", "DB_HOST", default="localhost"),
+            "PORT": get_env("MSSQL_PORT", "DB_PORT", default="1433"),
+            "TIME_ZONE": TIME_ZONE,
+            "OPTIONS": {
+                "driver": os.getenv("MSSQL_DRIVER", "ODBC Driver 18 for SQL Server"),
+                "extra_params": os.getenv("MSSQL_EXTRA_PARAMS", "TrustServerCertificate=yes;"),
+            },
+        }
     }
-}
+elif DB_ENGINE in ("postgres", "postgresql"):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": get_env("POSTGRES_DB", "DB_NAME"),
+            "USER": get_env("POSTGRES_USER", "DB_USER"),
+            "PASSWORD": get_env("POSTGRES_PASSWORD", "DB_PASSWORD"),
+            "HOST": get_env("POSTGRES_HOST", "DB_HOST"),
+            "PORT": get_env("POSTGRES_PORT", "DB_PORT"),
+            "CONN_HEALTH_CHECKS": False,
+            "TIME_ZONE": TIME_ZONE,
+            "CHARSET": "UTF8",
+        }
+    }
+else:
+    raise ValueError(f"Unsupported DB_ENGINE '{DB_ENGINE}'")
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -175,7 +207,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 PROTOCOL = os.getenv("PROTOCOL", "http")
-CORS_ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",")
+CORS_ALLOWED_ORIGINS = env_list("ALLOWED_ORIGINS")
 
 CSRF_COOKIE_NAME = "csrftoken"
 
@@ -184,35 +216,44 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 # print("DATABASES", DATABASES)
 # print("CORS_ALLOWED_ORIGINS", CORS_ALLOWED_ORIGINS)
 
-# This is only set in IDE (Intellij)
-if os.getenv("LOCAL-DEV"):
-    # Local-Solution
+USE_REDIS = parse_boolean(os.getenv("USE_REDIS", "1"))
+REDIS_HOST = os.getenv("REDIS_HOST", "scoring-redis")
+REDIS_PORT = os.getenv("REDIS_PORT", 6379)
+
+if os.getenv("LOCAL-DEV") or not USE_REDIS:
     CHANNEL_LAYERS = {
         "default": {
             "BACKEND": "channels.layers.InMemoryChannelLayer",
         }
     }
 else:
-    # Docker-Solution
     CHANNEL_LAYERS = {
         "default": {
             "BACKEND": "channels_redis.core.RedisChannelLayer",
             "CONFIG": {
-                "hosts": [(os.getenv("REDIS_HOST"), 6379)],
+                "hosts": [(REDIS_HOST, int(REDIS_PORT))],
             },
         },
     }
 
-REDIS_URL = f"redis://{os.getenv('REDIS_HOST')}:{os.getenv('REDIS_PORT', 6379)}/1"
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": REDIS_URL,
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+if USE_REDIS:
+    REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/1"
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_URL,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
         },
-    },
-}
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "scorecore-local-cache",
+        },
+    }
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
@@ -226,10 +267,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_ROOT = os.getenv("STATIC_ROOT", os.path.join(BASE_DIR, "static"))
 STATIC_URL = "/static/"
 
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_ROOT = os.getenv("MEDIA_ROOT", os.path.join(BASE_DIR, "media"))
 MEDIA_URL = "/media/"
 
 DATA_UPLOAD_MAX_NUMBER_FILES = 10000
@@ -237,18 +278,21 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 26843545600  # 5GB
 FILE_UPLOAD_MAX_MEMORY_SIZE = 26843545600  # 5GB
 
 DEFAULT_DIRS = {_dir.strip(): os.path.join(MEDIA_ROOT, _dir.strip())
-                for _dir in os.getenv("DEFAULT_DIRS", "").split(',')}
+                for _dir in os.getenv("DEFAULT_DIRS", "projects,backup,evaluations,setup,logs,videos").split(',')
+                if _dir.strip()}
 
 DBBACKUP_STORAGE = "django.core.files.storage.FileSystemStorage"
 DBBACKUP_STORAGE_OPTIONS = {"location": DEFAULT_DIRS.get("backup")}
-DBBACKUP_CONNECTORS = {
-    "default": {
-        "USER": os.getenv("POSTGRES_USER"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-        "HOST": os.getenv("POSTGRES_HOST"),
-        "CONNECTOR": "dbbackup.db.postgresql.PgDumpConnector"
+DBBACKUP_CONNECTORS = {}
+if DB_ENGINE in ("postgres", "postgresql"):
+    DBBACKUP_CONNECTORS = {
+        "default": {
+            "USER": get_env("POSTGRES_USER", "DB_USER"),
+            "PASSWORD": get_env("POSTGRES_PASSWORD", "DB_PASSWORD"),
+            "HOST": get_env("POSTGRES_HOST", "DB_HOST"),
+            "CONNECTOR": "dbbackup.db.postgresql.PgDumpConnector"
+        }
     }
-}
 
 FILE_UPLOAD_HANDLERS = [
     "django.core.files.uploadhandler.TemporaryFileUploadHandler",
@@ -271,6 +315,9 @@ SECURE_HSTS_PRELOAD = parse_boolean(os.getenv("SECURE_HSTS_PRELOAD", False))
 SECURE_SSL_REDIRECT = parse_boolean(os.getenv("SECURE_SSL_REDIRECT", False))
 SECURE_SSL_HOST = os.getenv("SECURE_SSL_HOST")
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+
+USE_X_FORWARDED_HOST = parse_boolean(os.getenv("USE_X_FORWARDED_HOST", "1"))
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # CSRF_COOKIE_SECURE = parse_boolean(os.getenv("CSRF_COOKIE_SECURE", True))
 # CSRF_COOKIE_SAMESITE = "Strict"

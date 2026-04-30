@@ -13,6 +13,7 @@ const ProjectEvaluateView = React.lazy(() => import("./components/main/ProjectEv
 const ProjectDifferencesView = React.lazy(() => import("./components/main/ProjectDifferencesView"));
 const ProjectInvestigateView = React.lazy(() => import("./components/main/ProjectInvestigateView"));
 const ScoreView = React.lazy(() => import("./components/main/ScoreView"));
+const dockerEnabled = process.env.REACT_APP_DOCKER_ENABLED !== "0";
 
 
 const CoreRoutes = () => {
@@ -26,7 +27,9 @@ const CoreRoutes = () => {
       <Route path="/project/:id/useless" element={ <Navbar act={"useless"} content={ <UselessImageFilesView /> }/>} />
       <Route path="/project/:id/differences" element={ <Navbar act={"differences"} content={ <ProjectDifferencesView /> }/>} />
       <Route path="/project/:id/investigate" element={ <Navbar act={"investigate"} content={ <ProjectInvestigateView /> }/>} />
-      <Route path="/docker" element={ <Navbar act={""} content={ <WebSocketProvider url={ "/ws/docker/status" }><DockerStatusView /></WebSocketProvider> }/> }/>
+      { dockerEnabled && (
+        <Route path="/docker" element={ <Navbar act={"docker"} content={ <WebSocketProvider url={ "/ws/docker/status" }><DockerStatusView /></WebSocketProvider> }/> }/>
+      ) }
 
       {/*Default-Route*/ }
       <Route path="/*" element={ <Navigate exact from="/" to="/project/overview/"/> } />
