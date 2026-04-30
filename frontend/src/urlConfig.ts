@@ -1,8 +1,12 @@
 const trimTrailingSlash = (value: string) => value.replace(/\/+$/, "");
 const trimSlashes = (value: string) => value.replace(/^\/+|\/+$/g, "");
 
+const getPublicBaseUrl = () => {
+  return trimTrailingSlash(process.env.PUBLIC_URL || "");
+};
+
 export const getBackendBaseUrl = () => {
-  return trimTrailingSlash(process.env.REACT_APP_BACKEND_URL || "");
+  return trimTrailingSlash(process.env.REACT_APP_BACKEND_URL || getPublicBaseUrl());
 };
 
 export const backendUrl = (...parts: Array<string | number | undefined | null>) => {
@@ -24,7 +28,7 @@ export const wsUrl = (path: string) => {
   const configured = process.env.REACT_APP_BASE_WS || process.env.REACT_APP_WS_URL || "";
   const baseUrl = configured
     ? trimTrailingSlash(configured)
-    : `${ window.location.protocol === "https:" ? "wss:" : "ws:" }//${ window.location.host }`;
+    : `${ window.location.protocol === "https:" ? "wss:" : "ws:" }//${ window.location.host }${ getPublicBaseUrl() }`;
 
   return `${ baseUrl }/${ trimSlashes(path) }`;
 };
