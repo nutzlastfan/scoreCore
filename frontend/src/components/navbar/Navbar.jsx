@@ -1,7 +1,7 @@
 import { Button, Col } from "react-bootstrap";
 import React from "react";
 import { useAuth } from "../../../hooks/CoreAuthProvider";
-import { backendUrl } from "../../urlConfig";
+import { backendUrl, frontendUrl } from "../../urlConfig";
 
 const Navbar = ({ content, act }) => {
 
@@ -15,16 +15,16 @@ const Navbar = ({ content, act }) => {
   return (
     <>
       <Col md={ 2 } id={ "main-Navbar" } className={ " mt-4" }>
-        <Button href="/project/overview/" variant={ act === "overview" ? "info" : "primary" } className="w-100"
+        <Button href={ frontendUrl("project/overview/") } variant={ act === "overview" ? "info" : "primary" } className="w-100"
                 size="lg">Projects</Button>
         { auth?.user?.is_superuser && (
           <>
-            <Button href="/project/evaluate/" variant={ act === "evaluate" ? "info" : "primary" } className="w-100 mt-2"
+            <Button href={ frontendUrl("project/evaluate/") } variant={ act === "evaluate" ? "info" : "primary" } className="w-100 mt-2"
                     size="lg">Evaluate</Button>
-            <Button href="/project/backup/" variant={ act === "backup" ? "info" : "primary" } className="w-100 mt-2"
+            <Button href={ frontendUrl("project/backup/") } variant={ act === "backup" ? "info" : "primary" } className="w-100 mt-2"
                     size="lg">Backup</Button>
             { dockerEnabled && (
-              <Button href="/docker/" variant={ act === "docker" ? "info" : "primary" } className="w-100 mt-2" size="lg">Docker
+              <Button href={ frontendUrl("docker/") } variant={ act === "docker" ? "info" : "primary" } className="w-100 mt-2" size="lg">Docker
                 Status</Button>
             ) }
             <Button href={ backendUrl("admin") } variant="primary" className="w-100 mt-2"

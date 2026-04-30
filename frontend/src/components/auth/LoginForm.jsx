@@ -11,7 +11,7 @@ const LoginForm = () => {
   const auth = useAuth();
 
   const onSubmit = async (data) => {
-    const forward = searchParams.get('forward') || '/bank/0/overview';
+    const forward = searchParams.get('forward') || '/project/overview/';
     await auth.loginAction(data, forward);
   };
 
