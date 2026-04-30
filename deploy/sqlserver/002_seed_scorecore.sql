@@ -5,7 +5,7 @@ Run after 001_create_scorecore_tables.sql.
 Edit the SQLCMD variables before execution if needed.
 */
 
-:setvar DatabaseName "ScoreCore"
+:setvar DatabaseName "Scoring"
 :setvar AdminUser "admin"
 :setvar AdminEmail "admin@example.local"
 :setvar AdminPasswordHash "pbkdf2_sha256$1000000$scorecoreseed$/LOsaQApTwzP9H3DpKYqVoXZe4pvT9SZbDFKJiqG4E4="

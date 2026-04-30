@@ -3,14 +3,14 @@ ScoreCore SQL Server schema.
 
 Run in SQLCMD mode after creating the database:
 
-    :setvar DatabaseName "ScoreCore"
+    :setvar DatabaseName "Scoring"
     :r .\001_create_scorecore_tables.sql
 
 This script creates the Django core tables used by this application plus the
 ScoreCore app tables. It is intended for an empty database.
 */
 
-:setvar DatabaseName "ScoreCore"
+:setvar DatabaseName "Scoring"
 USE [$(DatabaseName)];
 GO
 
