@@ -8,6 +8,7 @@ import React, {
   useCallback,
 } from 'react';
 import { useLocation, useNavigate } from 'react-router';
+import { backendUrl } from '../src/urlConfig';
 
 type User = JwtPayload;
 const intervalMin = 30;
@@ -37,8 +38,8 @@ export interface AuthContextType {
 const refreshApi = async (refreshToken) => {
   try {
     const response = await axios.post(
-      `${API_URL}/api/token/refresh/`,
-      refreshToken,
+      backendUrl('api/token/refresh/'),
+      { refresh: refreshToken },
       {
         headers: { Authorization: `Bearer ${refreshToken}` },
       },
@@ -46,7 +47,7 @@ const refreshApi = async (refreshToken) => {
 
     return {
       isSuccess: true,
-      newAuthToken: response.data.token,
+      newAuthToken: response.data.access,
       newAuthTokenExpireIn: intervalMin,
       newRefreshTokenExpiresIn: intervalMin * 2,
     } as AuthRefresh;
@@ -71,8 +72,6 @@ const defaultAuthContextValue: AuthContextType = {
 export const AuthContext = createContext<AuthContextType>(
   defaultAuthContextValue,
 );
-
-const API_URL = process.env.REACT_APP_BACKEND_URL ?? '';
 
 const CoreAuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('authToken') || '');
@@ -104,9 +103,11 @@ const CoreAuthProvider = ({ children }) => {
   const logoutAction = useCallback(
     async (forward?: string) => {
       try {
-        await axios.post(`${API_URL}/api/token/logout/`, {
-          refresh: refreshToken,
-        });
+        if (refreshToken) {
+          await axios.post(backendUrl('api/token/logout/'), {
+            refresh: refreshToken,
+          });
+        }
       } catch (error) {
         console.error(
           'Logout request failed, but proceeding with client-side logout:',
@@ -116,6 +117,7 @@ const CoreAuthProvider = ({ children }) => {
         setToken('');
         setRefreshToken('');
         localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
         if (forward) {
           navigate(`/login?forward=${encodeURIComponent(forward)}`);
         } else {
@@ -129,11 +131,13 @@ const CoreAuthProvider = ({ children }) => {
   const loginAction = useCallback(
     async (data: AuthCredentials, forward?: string) => {
       try {
-        const response = await axios.post(`${API_URL}/api/token/`, data);
+        const response = await axios.post(backendUrl('api/token/'), data);
         const newToken = response.data.access;
+        const newRefreshToken = response.data.refresh;
         localStorage.setItem('authToken', newToken);
+        localStorage.setItem('refreshToken', newRefreshToken);
         setToken(newToken);
-        setRefreshToken(response.data.refresh);
+        setRefreshToken(newRefreshToken);
 
         if (forward) {
           navigate(forward);

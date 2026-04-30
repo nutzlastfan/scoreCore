@@ -8,6 +8,7 @@ import { showErrorBar, showSuccessBar } from "../ui/Snackbar";
 import { useSnackbar } from "notistack";
 
 import { useAuth } from "../../../hooks/CoreAuthProvider";
+import { backendUrl } from "../../urlConfig";
 
 const ProjectEvaluateView = () => {
 
@@ -120,7 +121,7 @@ const ProjectEvaluateView = () => {
               { evaluations.map((evaluation) => (
                 <Col key={ evaluation } md={ 3 } className={ "mb-3" }>
                   <Button className={ "px-5" }
-                          href={ `${ process.env.REACT_APP_BACKEND_URL }/media/evaluations/${ selectedProject.id }/${ evaluation }` }
+                          href={ backendUrl("media/evaluations", selectedProject.id, evaluation) }
                           target={ "_blank" }>{ evaluation }</Button>
                 </Col>
               )) }

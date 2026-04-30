@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import useWebSocket from "react-use-websocket";
+import { wsUrl } from "../../urlConfig";
 
 const WebSocketContext = React.createContext([{}, p => {}]);
 
 const WebSocketProvider = ({ children, url }) => {
 
     const getSocketUrl = useCallback(() => {
-      const baseWsUrl = process.env.REACT_APP_BASE_WS || process.env.REACT_APP_WS_URL || "";
-      const ws_url = baseWsUrl + url;
+      const ws_url = wsUrl(url);
       return new Promise(resolve => {
         setTimeout(() => {
           resolve(ws_url);

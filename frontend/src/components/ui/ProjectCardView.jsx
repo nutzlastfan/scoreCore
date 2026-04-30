@@ -4,6 +4,7 @@ import "../ui/css/ProjectCardView.css";
 import { useNavigate } from "react-router";
 import axiosConfig from "../../axiosConfig";
 import { useAuth } from "../../../hooks/CoreAuthProvider";
+import { backendUrl } from "../../urlConfig";
 
 
 const ProjectCardView = ({
@@ -111,7 +112,7 @@ const ProjectCardView = ({
               <div className={ "float-end" }>
                 <span className="project-Card-Header-Content me-2" onClick={ (e) => openHeatMap(e) }>🔥</span>
                 <i className="project-Card-Header-Content bi bi-pencil-fill me-2"
-                   onClick={ (e) => loginForwardTo(e, `${ process.env.REACT_APP_BACKEND_URL }/admin/scoring/project/${ id }/change/`) }/>
+                   onClick={ (e) => loginForwardTo(e, backendUrl("admin/scoring/project", id, "change/")) }/>
                 <i className="project-Card-Header-Content bi bi-arrow-repeat me-2" onClick={ (e) => readImages(e) }/>
                 <i className="project-Card-Header-Content bi bi-patch-check me-2"
                    onClick={ (e) => advNavigate(e, `/project/${ id }/investigate`) }/>

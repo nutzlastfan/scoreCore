@@ -4,13 +4,14 @@ import { Item } from "react-photoswipe-gallery";
 import { Element } from "react-scroll";
 
 import DifferencesImageGalleryHolderOverlay from "./DifferencesImageGalleryHolderOverlay";
+import { backendUrl } from "../../urlConfig";
 
 import "./css/ImageGalleryHolder.css";
 
 
 const DifferencesImageGalleryHolder = ({ overlaySetter, imagefile }) => {
 
-  const path = [process.env.REACT_APP_BACKEND_URL, imagefile.path, imagefile.filename].join("/");
+  const path = backendUrl(imagefile.path, imagefile.filename);
 
   function getBorderClazz() {
 

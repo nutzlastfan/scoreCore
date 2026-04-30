@@ -18,6 +18,7 @@ import {useNavigate, useSearchParams} from "react-router";
 import "../ui/css/ScoreView.css";
 
 import {useAuth} from "../../../hooks/CoreAuthProvider";
+import { backendUrl } from "../../urlConfig";
 
 
 const ScoreView = () => {
@@ -167,7 +168,7 @@ const ScoreView = () => {
 
     function getImagePath() {
         if (images?.image) {
-            return [process.env.REACT_APP_BACKEND_URL, images?.image.path, images?.image.filename].join("/");
+            return backendUrl(images?.image.path, images?.image.filename);
         }
         return "";
     }

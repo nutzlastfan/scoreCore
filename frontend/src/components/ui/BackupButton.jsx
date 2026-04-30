@@ -1,6 +1,7 @@
 import { Button, Col, Row } from "react-bootstrap";
 import React from "react";
 import "../ui/css/BackupButton.css";
+import { backendUrl } from "../../urlConfig";
 
 const BackupButton = ({ id, name, date, callbackRestore, callbackDelete }) => {
 
@@ -13,7 +14,7 @@ const BackupButton = ({ id, name, date, callbackRestore, callbackDelete }) => {
         </Col>
         <Col md={2}>{date}</Col>
         <Col>
-          <a className={ "backupbutton-text" } href={`${process.env.REACT_APP_BACKEND_URL}/media/backup/${name}`}>{ name }</a>
+          <a className={ "backupbutton-text" } href={backendUrl("media/backup", name)}>{ name }</a>
         </Col>
     </Row>
   );

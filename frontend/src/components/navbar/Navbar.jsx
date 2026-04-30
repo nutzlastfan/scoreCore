@@ -1,6 +1,7 @@
 import { Button, Col } from "react-bootstrap";
 import React from "react";
 import { useAuth } from "../../../hooks/CoreAuthProvider";
+import { backendUrl } from "../../urlConfig";
 
 const Navbar = ({ content, act }) => {
 
@@ -26,7 +27,7 @@ const Navbar = ({ content, act }) => {
               <Button href="/docker/" variant={ act === "docker" ? "info" : "primary" } className="w-100 mt-2" size="lg">Docker
                 Status</Button>
             ) }
-            <Button href={ `${ process.env.REACT_APP_BACKEND_URL }/admin` } variant="primary" className="w-100 mt-2"
+            <Button href={ backendUrl("admin") } variant="primary" className="w-100 mt-2"
                     size="lg">Admin</Button>
           </>
         ) }

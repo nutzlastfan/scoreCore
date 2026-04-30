@@ -8,10 +8,11 @@ import axiosConfig from "../../axiosConfig";
 import { Link, Tooltip } from "@mui/material";
 
 import { useAuth } from "../../../hooks/CoreAuthProvider";
+import { backendUrl } from "../../urlConfig";
 
 const ScoreFileLink = ({id, filename, path, users}) => {
   function getImagePath() {
-    return [process.env.REACT_APP_BACKEND_URL, path, filename].join("/");
+    return backendUrl(path, filename);
   }
 
   return (

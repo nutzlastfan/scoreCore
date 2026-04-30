@@ -10,6 +10,7 @@ import UploadFolderModal from "../modal/UploadFolderModal";
 import UploadFileModal from "../modal/UploadFileModal";
 import { useAuth } from "../../../hooks/CoreAuthProvider";
 import { useSnackbar } from "notistack";
+import { backendUrl } from "../../urlConfig";
 
 const IndexView = () => {
 
@@ -48,7 +49,7 @@ const IndexView = () => {
                 <Button className={"me-2"} variant={"warning"} onClick={() => setModalState({ ...modalState, modalUploadFolder: true, title: "Upload folder" })}>1a. Upload Folder</Button>
                 <Button className={"me-2"} variant={"warning"} onClick={() => setModalState({ ...modalState, modalUploadFiles: true, title: "Upload images/videos" })}>1b. Upload Images/Videos</Button>
                 <Button className={"me-2"} variant={"warning"} onClick={() => setModalState({ ...modalState, modalProjectModal: true })}>2. Create New Project</Button>
-                <Button className={"me-2"} variant={"primary"} href={`${process.env.REACT_APP_BACKEND_URL}/admin/auth/user/add/`} target={"_blank"}>Add User</Button>
+                <Button className={"me-2"} variant={"primary"} href={backendUrl("admin/auth/user/add/")} target={"_blank"}>Add User</Button>
               </Col>
             </Row>
           )}

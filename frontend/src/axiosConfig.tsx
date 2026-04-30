@@ -1,6 +1,7 @@
 import axios, {AxiosError, AxiosInstance} from "axios";
 import Cookies from "js-cookie";
 import {AuthContextType} from "../hooks/CoreAuthProvider";
+import { getBackendBaseUrl } from "./urlConfig";
 
 export default class axiosConfig {
   static instance;
@@ -8,7 +9,7 @@ export default class axiosConfig {
 
   constructor() {
     this.axiosHolder = axios.create({
-      baseURL: process.env.REACT_APP_BACKEND_URL,
+      baseURL: getBackendBaseUrl() || undefined,
     });
 
     const csrftoken = Cookies.get('csrftoken');
@@ -53,7 +54,7 @@ export default class axiosConfig {
         callBackSuccess(response);
       },
       (error) => {
-        if (error.response.status === 401) {
+        if ([401, 403].includes(error.response.status)) {
           if (auth?.token) {
             auth.navigate(`/login?forward=${auth.location}`);
             return;
@@ -83,7 +84,7 @@ export default class axiosConfig {
     ).catch(function (error) {
       if (error.response) {
         callBackError(error);
-        if (error.response.status === 401) {
+        if ([401, 403].includes(error.response.status)) {
           auth?.navigate(`/login?forward=${auth.location}`);
           return;
         }
