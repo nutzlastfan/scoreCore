@@ -161,7 +161,13 @@ class Project(models.Model):
         return {"files": files}
 
     def get_images_dir(self):
-        return get_path_projects(str(self.image_dir))
+        image_dir = str(self.image_dir or "").replace("\\", "/").strip("/")
+        if os.path.isabs(image_dir):
+            return image_dir
+        for prefix in ("media/projects/", "projects/"):
+            if image_dir.startswith(prefix):
+                image_dir = image_dir[len(prefix):]
+        return get_path_projects(*[part for part in image_dir.split("/") if part])
 
     def check_create_infofiles(self):
         _path = self.get_images_dir()
@@ -216,7 +222,8 @@ class Project(models.Model):
 
         if folders <= 1:
             self.create_script()
-            self.check_create_infofiles()
+
+        self.check_create_infofiles()
 
         info_files = []
         for root, _, files in os.walk(_path):

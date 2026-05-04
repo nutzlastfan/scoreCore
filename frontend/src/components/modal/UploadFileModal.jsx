@@ -8,7 +8,7 @@ import { getAcceptesTypes } from "../datatables/configs";
 import { fetchFolders } from "../../helper";
 import { useAuth } from "../../../hooks/CoreAuthProvider";
 
-const UploadFileModal = ({accept = "video", callBackData = () => {} }) => {
+const UploadFileModal = ({enqueueSnackbar, accept = "video", callBackData = () => {} }) => {
 
   const [show, setShow] = useContext(CoreModalContext);
   const [dirName, setDirName] = useState(undefined);

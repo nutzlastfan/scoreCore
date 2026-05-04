@@ -16,7 +16,7 @@ export default class axiosConfig {
 
     if (csrftoken) {
       this.axiosHolder.defaults.headers.common['X-CSRFToken'] =
-        `csrftoken ${csrftoken}`;
+        csrftoken;
     }
 
     // this.axiosHolder.defaults.headers.common['Cache-Control'] = `no-cache`;

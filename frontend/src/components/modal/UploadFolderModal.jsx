@@ -27,7 +27,7 @@ const UploadFolderModal = ({
 
   const dropzoneOptions = {
     accept: _types,
-    maxSize: 1024 * 1024 * 5, // 5 MB
+    maxSize: 1024 * 1024 * 512, // 512 MB
     onDrop: (acceptedFiles) => {
       console.log("Files dropped:", acceptedFiles);
       setUploadedFiles(acceptedFiles);
@@ -143,7 +143,7 @@ const UploadFolderModal = ({
     let formData = new FormData();
     let infoFileCount = 0;
 
-    acceptedFiles.map((file, index) => {
+    files.map((file, index) => {
       formData.append(`files${ index }`, file, file.name);
       if (file.name === "infofile.txt") {
         infoFileCount++;

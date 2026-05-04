@@ -100,6 +100,6 @@ If the source instance has very large tables, prefer a dedicated migration scrip
 
 ## Notes
 
-- The built-in PostgreSQL backup/restore action is disabled on MSSQL until a SQL Server backup/export implementation is added.
+- On MSSQL, the backup action writes a Django JSON fixture into `MEDIA_ROOT\backup` instead of using the PostgreSQL `django-dbbackup` connector. PostgreSQL deployments still use `django-dbbackup`.
 - The Docker status page is hidden when `REACT_APP_DOCKER_ENABLED=0` and the backend route is disabled when `DOCKER_FEATURE_ENABLED=0`.
 - Keep `origin` pointed at upstream and `fork` pointed at your fork so upstream changes can still be merged.

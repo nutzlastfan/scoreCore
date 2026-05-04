@@ -39,7 +39,11 @@ def _log(*msg, color: AnsiFore, tag, active):
     if active:
         _now = time.time()
         time_with_ms = "%s.%03d" % (time.strftime('%X', time.localtime(_now)), _now % 1 * 1000)
-        print(color, time_with_ms, f"{tag: <15}", *msg, Style.RESET_ALL)
+        try:
+            print(color, time_with_ms, f"{tag: <15}", *msg, Style.RESET_ALL)
+        except UnicodeEncodeError:
+            safe_msg = [str(part).encode("ascii", "backslashreplace").decode("ascii") for part in msg]
+            print(color, time_with_ms, f"{tag: <15}", *safe_msg, Style.RESET_ALL)
 
 
 def dlog(*msg, tag: str = "[DEBUG]", active=True, logger=None):
@@ -149,8 +153,12 @@ def build_abs_path(path_list: list) -> str:
 
 
 def get_rel_path(_path, _dir="media") -> str:
-    _index = _path.find(_dir)
-    return _path[_index:]
+    normalized_path = str(_path).replace("\\", "/")
+    normalized_dir = _dir.replace("\\", "/")
+    _index = normalized_path.find(normalized_dir)
+    if _index < 0:
+        return normalized_path
+    return normalized_path[_index:]
 
 
 def random_string(letter_count, digit_count):

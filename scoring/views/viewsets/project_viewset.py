@@ -111,7 +111,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         for d in folders:
             _path = os.path.join(project_dir, d)
             _rel_path = get_rel_path(_path).replace("\\", "/")
-            _in_use = Project.objects.filter(users=request.user, image_dir=_rel_path).count()
+            _in_use = Project.objects.filter(users=request.user, image_dir__in=[d, _rel_path]).count()
             count = count_images_in_folder(_path)
             data.append({"name": d,
                          "images": count,

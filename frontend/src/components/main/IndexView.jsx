@@ -40,7 +40,7 @@ const IndexView = () => {
       <div>
         <CreateProjectModal callBackData={ callBackData } />
         <UploadFolderModal enqueueSnackbar={ enqueueSnackbar } callBackData={ callBackUpload } />
-        <UploadFileModal callBackData={ callBackUpload } />
+        <UploadFileModal enqueueSnackbar={ enqueueSnackbar } callBackData={ callBackUpload } />
 
         <BoxContainer title="Available Projects">
           { auth?.user?.is_superuser && (

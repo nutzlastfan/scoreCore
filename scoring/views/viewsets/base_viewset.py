@@ -1,7 +1,5 @@
 import os
 
-from django.contrib.auth import login
-from django.contrib.auth.models import User
 from django.core.files.storage import FileSystemStorage
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -43,9 +41,6 @@ class ExtendedTokenObtainPairView(TokenObtainPairView):
             serializer.is_valid(raise_exception=True)
         except TokenError as e:
             raise InvalidToken(e.args[0])
-
-        user = User.objects.get(username=request.data.get("username"))
-        login(request, user)
 
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
