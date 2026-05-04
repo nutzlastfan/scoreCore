@@ -25,18 +25,39 @@ const UploadFolderModal = ({
 
   const _types = getAcceptesTypes(accept);
 
+  const handleSelectedFiles = (files, source = "picker") => {
+    const selectedFiles = Array.from(files || []);
+    console.log(`Folder files selected from ${ source }:`, selectedFiles);
+
+    if (selectedFiles.length === 0) {
+      const message = "No files were selected for upload.";
+      dispatch({ type: actionTypes.FAILED_UPLOAD, payload: message });
+      showErrorBar(enqueueSnackbar, message);
+      return;
+    }
+
+    setUploadedFiles(selectedFiles);
+  };
+
   const dropzoneOptions = {
     accept: _types,
     maxSize: 1024 * 1024 * 512, // 512 MB
     onDrop: (acceptedFiles) => {
-      console.log("Files dropped:", acceptedFiles);
-      setUploadedFiles(acceptedFiles);
-    }
+      if (acceptedFiles.length > 0) {
+        handleSelectedFiles(acceptedFiles, "drop");
+      }
+    },
+    onDropRejected: (fileRejections) => {
+      const message = fileRejections?.length
+        ? `${ fileRejections.length } file(s) were rejected.`
+        : "No valid files were selected for upload.";
+      dispatch({ type: actionTypes.FAILED_UPLOAD, payload: message });
+      showErrorBar(enqueueSnackbar, message);
+    },
   };
 
-  let acceptedFiles, getRootProps, getInputProps, isFocused, isDragAccept, isDragReject;
+  let getRootProps, getInputProps, isFocused, isDragAccept, isDragReject;
   ( {
-    acceptedFiles,
     getRootProps,
     getInputProps,
     isFocused,
@@ -99,7 +120,6 @@ const UploadFolderModal = ({
     if (show.modalUploadFolder) {
     }
   }, [show]);
-
 
   async function _uploadFiles(chunks, target_infofiles, dirName, dispatch, enqueueSnackbar) {
 
@@ -171,6 +191,14 @@ const UploadFolderModal = ({
     const target_infofiles = 15;
     let chunks = chunkFiles(uploadedFiles, target_infofiles);
 
+    if (chunks.length === 0) {
+      const message = "No files were prepared for upload.";
+      dispatch({ type: actionTypes.FAILED_UPLOAD, payload: message });
+      showErrorBar(enqueueSnackbar, message);
+      setUploadedFiles([]);
+      return;
+    }
+
     dispatch({ type: actionTypes.START_UPLOADS, payload: chunks.length });
 
     await _uploadFiles(chunks, target_infofiles, dirName, dispatch, enqueueSnackbar);
@@ -210,7 +238,9 @@ const UploadFolderModal = ({
                     ) : (
                       <Form.Group controlId="formValue">
                         <div { ...getRootProps({ style }) }>
-                          <input { ...getInputProps() } webkitdirectory="true" directory="true" multiple/>
+                          <input { ...getInputProps({
+                            onChange: (event) => handleSelectedFiles(event.target.files, "picker")
+                          }) } webkitdirectory="true" directory="true" multiple/>
                           <p>Drag 'n' drop some files here, or click to select files</p>
                         </div>
                       </Form.Group>
