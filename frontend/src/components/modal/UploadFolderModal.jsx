@@ -169,7 +169,7 @@ const UploadFolderModal = ({
 
   async function uploadFiles() {
     const target_infofiles = 15;
-    let chunks = chunkFiles(acceptedFiles, target_infofiles);
+    let chunks = chunkFiles(uploadedFiles, target_infofiles);
 
     dispatch({ type: actionTypes.START_UPLOADS, payload: chunks.length });
 
