@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useReducer, useState } from "react";
+import React, { useContext, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Button, Col, Form, Modal, Row } from "react-bootstrap";
 import { CoreModalContext } from "./coreModalContext";
 import axiosConfig from "../../axiosConfig";
@@ -21,11 +21,16 @@ const UploadFolderModal = ({
   const [folders, setFolders] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [state, dispatch] = useReducer(reducerUpload, defaultStateUpload);
+  const uploadInProgressRef = useRef(false);
   const auth = useAuth();
 
   const _types = getAcceptesTypes(accept);
 
   const handleSelectedFiles = (files, source = "picker") => {
+    if (uploadInProgressRef.current) {
+      return;
+    }
+
     const selectedFiles = Array.from(files || []);
     console.log(`Folder files selected from ${ source }:`, selectedFiles);
 
@@ -105,10 +110,10 @@ const UploadFolderModal = ({
   ]);
 
   useEffect(() => {
-    if (show.modalUploadFolder && folders.length === 0) {
+    if (show.modalUploadFolder) {
       fetchFolders(auth, setFolders);
     }
-  }, []);
+  }, [show.modalUploadFolder]);
 
   useEffect(() => {
     if (uploadedFiles.length) {
@@ -121,23 +126,24 @@ const UploadFolderModal = ({
     }
   }, [show]);
 
-  async function _uploadFiles(chunks, target_infofiles, dirName, dispatch, enqueueSnackbar) {
+  async function _uploadFiles(chunks, target_infofiles, dirName, dispatch) {
+    let totalFiles = 0;
 
     for (let i = 0; i < chunks.length; i++) {
       if (dirName) {
         chunks[i].append("projectName", dirName);
       }
       chunks[i].append("pos", i * target_infofiles);
+      let chunkUploaded = false;
       await axiosConfig.perform_post(auth, "/api/project/upload/", chunks[i],
         (response) => {
           dispatch({ type: actionTypes.FINISH_UPLOAD });
           if (response.data.success) {
-            showSuccessBar(enqueueSnackbar, `Successfully uploaded ${ response.data.files } File(s)`);
-            return true;
+            totalFiles += response.data.files || 0;
+            chunkUploaded = true;
           } else {
             dispatch({ type: actionTypes.FAILED_UPLOAD, payload: "An Error occurred. Please contact an admin!" });
             showErrorBar(enqueueSnackbar, "Error while uploading!");
-            return false;
           }
         },
         (error) => {
@@ -152,9 +158,12 @@ const UploadFolderModal = ({
         {
           headers: { "Content-Type": "multipart/form-data" }
         })
+      if (!chunkUploaded) {
+        return { success: false, files: totalFiles };
+      }
       console.log(i, "=>", chunks[i]);
     }
-    return true;
+    return { success: true, files: totalFiles };
   }
 
   // Function to find chunks based on "infofile.txt" occurrences
@@ -188,6 +197,11 @@ const UploadFolderModal = ({
   };
 
   async function uploadFiles() {
+    if (uploadInProgressRef.current) {
+      return;
+    }
+
+    uploadInProgressRef.current = true;
     const target_infofiles = 15;
     let chunks = chunkFiles(uploadedFiles, target_infofiles);
 
@@ -196,17 +210,23 @@ const UploadFolderModal = ({
       dispatch({ type: actionTypes.FAILED_UPLOAD, payload: message });
       showErrorBar(enqueueSnackbar, message);
       setUploadedFiles([]);
+      uploadInProgressRef.current = false;
       return;
     }
 
     dispatch({ type: actionTypes.START_UPLOADS, payload: chunks.length });
 
-    await _uploadFiles(chunks, target_infofiles, dirName, dispatch, enqueueSnackbar);
-
-    showSuccessBar(enqueueSnackbar, `Upload finished!`);
-    handleClose();
+    const result = await _uploadFiles(chunks, target_infofiles, dirName, dispatch);
+    uploadInProgressRef.current = false;
     setUploadedFiles([]);
-    dispatch({ type: actionTypes.SET_RESET });
+
+    if (result.success) {
+      showSuccessBar(enqueueSnackbar, `Successfully uploaded ${ result.files } file(s).`);
+      fetchFolders(auth, setFolders);
+      callBackData(result);
+      handleClose();
+      dispatch({ type: actionTypes.SET_RESET });
+    }
   }
 
   const handleClose = () => {
@@ -238,9 +258,7 @@ const UploadFolderModal = ({
                     ) : (
                       <Form.Group controlId="formValue">
                         <div { ...getRootProps({ style }) }>
-                          <input { ...getInputProps({
-                            onChange: (event) => handleSelectedFiles(event.target.files, "picker")
-                          }) } webkitdirectory="true" directory="true" multiple/>
+                          <input { ...getInputProps() } webkitdirectory="true" directory="true" multiple/>
                           <p>Drag 'n' drop some files here, or click to select files</p>
                         </div>
                       </Form.Group>

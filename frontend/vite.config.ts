@@ -25,6 +25,9 @@ export default ({mode}) => {
     plugins: [
       react()
     ],
+    esbuild: {
+      charset: "ascii",
+    },
     build: {
     },
     define: {

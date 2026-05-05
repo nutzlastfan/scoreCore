@@ -416,7 +416,7 @@ class ImageFile(models.Model):
         _id = ""
         if os.getenv("DEBUG"):
             _id = f"[{self.pk}] "
-        add_0 = "🗑 " if self.useless else ""
+        add_0 = "\U0001f5d1 " if self.useless else ""
         return f"{add_0}{_id} File: {self.filename} for '{self.project.name}'"
 
 

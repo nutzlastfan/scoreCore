@@ -62,6 +62,9 @@ class BasisViewSet:
         pos = parse_int(request.data.get("pos", 0))
         okaylog(pos, project_name, len(request.FILES))
 
+        if not project_name:
+            return {"reason": "No target directory was provided.", "files": 0, "pos": pos}
+
         response = {}
         fs = FileSystemStorage(location=DEFAULT_DIRS.get("projects"))
 
@@ -75,7 +78,6 @@ class BasisViewSet:
                 elog(f"Error with file {_file}")
 
             incr_count = False
-            files_count += 1
             name = parse_file_name(str(_file))
             if not name:
                 return {"reason": f"No valid file-name: {name}"}
@@ -100,6 +102,7 @@ class BasisViewSet:
                 _path = _path[len(get_path_projects())+1:].replace("\\", "/")
 
             _new_file = fs.save(_path, _file)
+            files_count += 1
 
             if incr_count:
                 folder_counter += 1

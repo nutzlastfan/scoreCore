@@ -5,6 +5,8 @@ import "./css/DifferencesImageGalleryHolderOverlay.css";
 import axiosConfig from "../../axiosConfig";
 import { useAuth } from "../../../hooks/CoreAuthProvider";
 
+const sumSymbol = "\u2211";
+const heatMapIcon = "\u{1F525}";
 
 const DifferencesImageGalleryHolderOverlay = ({ imagefile }) => {
 
@@ -30,7 +32,7 @@ const DifferencesImageGalleryHolderOverlay = ({ imagefile }) => {
       { id: 1, name: "File", value: imagefile.filename, format: false },
       { id: 2, name: "Scorers", value: imagefile.scores.length, format: false },
       ...stddevs,
-      { id: 1000, name: "∑ Std.-Dev.", value: imagefile.stddev ? imagefile.stddev.toFixed(2) : 0, format: true },
+      { id: 1000, name: `${ sumSymbol } Std.-Dev.`, value: imagefile.stddev ? imagefile.stddev.toFixed(2) : 0, format: true },
     ];
   }
 
@@ -82,7 +84,7 @@ const DifferencesImageGalleryHolderOverlay = ({ imagefile }) => {
         ) }
         <Row className={ "mt-2" }>
           <Col>
-            <Button variant={ "outline-success" } onClick={ (e) => openHeatMap(e) }>Open 🔥-Map</Button>
+            <Button variant={ "outline-success" } onClick={ (e) => openHeatMap(e) }>Open { heatMapIcon }-Map</Button>
           </Col>
         </Row>
 

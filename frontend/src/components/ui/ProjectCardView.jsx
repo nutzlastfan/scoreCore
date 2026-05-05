@@ -6,6 +6,7 @@ import axiosConfig from "../../axiosConfig";
 import { useAuth } from "../../../hooks/CoreAuthProvider";
 import { backendUrl } from "../../urlConfig";
 
+const heatMapIcon = "\u{1F525}";
 
 const ProjectCardView = ({
                            id, name, features, icon, data, users,
@@ -110,7 +111,7 @@ const ProjectCardView = ({
             <span className={ "project-Card-Header-Content" }>{ icon }{ name }</span>
             { auth?.user?.is_superuser && (
               <div className={ "float-end" }>
-                <span className="project-Card-Header-Content me-2" onClick={ (e) => openHeatMap(e) }>🔥</span>
+                <span className="project-Card-Header-Content me-2" onClick={ (e) => openHeatMap(e) }>{ heatMapIcon }</span>
                 <i className="project-Card-Header-Content bi bi-pencil-fill me-2"
                    onClick={ (e) => loginForwardTo(e, backendUrl("admin/scoring/project", id, "change/")) }/>
                 <i className="project-Card-Header-Content bi bi-arrow-repeat me-2" onClick={ (e) => readImages(e) }/>

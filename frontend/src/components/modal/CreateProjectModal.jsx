@@ -12,13 +12,17 @@ import { fetchFolders } from "../../helper";
 import { useAuth } from "../../../hooks/CoreAuthProvider";
 
 const suggestions = [
-  { icon: "🐵" },
-  { icon: "🐶" },
-  { icon: "🐱" },
-  { icon: "🐷" },
-  { icon: "🐭", txt: "Eyes, Nose, Cheeks, Ears, Whiskers" },
-  { icon: "🐰" }
+  { icon: "\u{1F435}" },
+  { icon: "\u{1F436}" },
+  { icon: "\u{1F431}" },
+  { icon: "\u{1F437}" },
+  { icon: "\u{1F42D}", txt: "Eyes, Nose, Cheeks, Ears, Whiskers" },
+  { icon: "\u{1F430}" }
 ];
+
+const cameraIcon = "\u{1F4F7}";
+const folderIcon = "\u{1F4C2}";
+const pinIcon = "\u{1F4CC}";
 
 const defaultForm = {
   name: "",
@@ -109,7 +113,7 @@ const CreateProjectModal = ({
 
           <Form.Group controlId="formIcon" className={ "mt-3" }>
             <Form.Label>
-              Icon 📷 (Suggestions: { suggestions.map(({ icon }, _i) => {
+              Icon { cameraIcon } (Suggestions: { suggestions.map(({ icon }, _i) => {
               return <span key={ `sug-sp-${ _i }` } onClick={ () => advSetValue("icon", icon) }>{ icon }</span>;
             }) })
               <div className={ "modalErrors" }>
@@ -138,10 +142,10 @@ const CreateProjectModal = ({
           </Form.Group>
 
           <Form.Group controlId="formFolder" className={ "mt-3" }>
-            <Form.Label>Folder 📂 (optional)</Form.Label>
+            <Form.Label>Folder { folderIcon } (optional)</Form.Label>
             <Typeahead
               id="folder-chooser"
-              labelKey={ opt => `${ opt.name } Images: ${ opt.images } ${ opt.in_use === true && ", 📌" }` }
+              labelKey={ opt => `${ opt.name } Images: ${ opt.images }${ opt.in_use === true ? `, ${ pinIcon }` : "" }` }
               onChange={ setFolder }
               selected={ folder }
               options={ folders?.data ? folders.data : [] }
