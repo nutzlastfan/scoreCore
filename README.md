@@ -1,168 +1,246 @@
-# Scoring-Tool
-Welcome to the **Scoring-Tool** repository! This README will guide you through the setup and usage of the project. Follow these steps to get your development environment up and running smoothly.
+# ScoreCore / Scoring Tool
 
-This project is a fully-dockerized tool to score images by different users for scientific purpose. It's a [redcore](https://github.com/RedCore161/redcore "redcore")-derivative.
+ScoreCore is a Django and React application for scoring image sets with multiple users. It supports project-based image review, configurable scoring features, useless-image handling, and agreement/evaluation exports for scientific workflows.
 
-### Capabilities
-* Creating projects and uploading Images to Score
-* Configure how many scores are needed for each image
-* Mark images as useless (if they are not suitable)
-* Check some metrics like fleiss-kapa to see if your scorers agree
+This branch is maintained for the Windows/IIS/MSSQL deployment used at FU Berlin while still keeping the original Docker/PostgreSQL workflow available for local or Linux-based setups.
 
-### Specs
-* Backend: Django using rest_framework
-* Frontend: React
-* Database: Postgres:16
-* Reverse-Proxy: Nginx
+## Features
 
-## Getting Started
+- Create scoring projects from uploaded image folders.
+- Assign users and configure required scores per user and per image.
+- Mark unsuitable images as useless.
+- Review score progress and per-project metrics.
+- Export evaluation data as JSON/XLSX.
+- Run with PostgreSQL/Docker or Microsoft SQL Server/IIS.
+
+## Runtime Options
+
+### Docker/PostgreSQL
+
+The original deployment model uses:
+
+- Django REST backend
+- React frontend
+- PostgreSQL 16
+- Nginx reverse proxy
+- Redis for async/WebSocket support
+
+Use this for local Docker-based development or Linux-style deployments.
+
+### Windows/IIS/MSSQL
+
+The `windows-iis-mssql` branch adds the production Windows path:
+
+- IIS serves the built React app.
+- IIS URL Rewrite and ARR proxy `/api`, `/admin`, `/media`, `/static`, and `/ws` to Daphne.
+- Daphne runs the Django ASGI app on `127.0.0.1:8181`.
+- The backend can run as the `ScoreCoreBackend` Windows service via NSSM.
+- SQL Server is supported through `mssql-django` and ODBC Driver 18.
+- Docker features can be disabled with `DOCKER_FEATURE_ENABLED=0` and `REACT_APP_DOCKER_ENABLED=0`.
+- IIS upload size is raised in `deploy/windows/frontend.web.config` via `requestLimits maxAllowedContentLength`.
+- Frontend builds use ASCII JS output to avoid broken emoji/symbol rendering on IIS/browser encoding edges.
+
+Detailed setup notes live in [docs/windows-iis-mssql.md](docs/windows-iis-mssql.md).
+
+## Local Docker Setup
 
 ### Prerequisites
-
-Before you begin, ensure you have the following installed on your system:
 
 - Docker
 - Python
 - Node.js and npm
 
+Add local host names if you use the default Docker host setup:
 
-Add some URLs to your hosts-file, so they are locally available!
+```text
+127.0.0.1 api.scoring.local
+127.0.0.1 scoring.local
+```
 
-**Unix**
+### Start
 
-   ```sh
-   sudo tee -a /etc/hosts > /dev/null <<EOT
-   
-   127.0.0.1 api.scoring.local
-   127.0.0.1 scoring.local   
-  
-   EOT
-   ```
+```sh
+cp .env.template .env
+cp django.env.template django.env
+docker compose up -d
+```
 
-**Windows:**
-1. Shame on you for using such a bad OS!
-2. Your host-file is at:
-   ```sh
-   %windir%\System32\drivers\etc
-   ```
-3. Copy the above code (between EOT) and save the file
-
-
-## Setup Instructions
-
-1. **Copy environment templates:**
-
-   ```sh
-   cp .env.template .env
-   cp django.env.template django.env
-   ```
-
-
-2. **Edit the environment files as needed:**
-
-    Open .env and django.env in your favorite text editor and configure them according to your requirements.
-
-3. **Start the Docker containers:**
-   This will start all necessary services in the background.
-   ```sh
-    docker compose up -d
-   ```
+Edit `.env` and `django.env` before starting if your ports, hosts, credentials, or media paths differ.
 
 ## Local Development
+
 ### Backend
 
-To start the local backend server, follow these steps:
+```sh
+python manage.py makemigrations
+python manage.py migrate
+python manage.py createadmin
+python manage.py runserver localhost:8000
+```
 
-1. **Apply migrations:**
-
-   ```sh
-    python manage.py makemigrations
-    python manage.py migrate
-   ```
-
-2. **Create a superuser:**
-   
-   This command will prompt you to enter details for the admin user.
-   ```sh
-    python manage.py createadmin
-   ```
-
-3. **Start backend-server:**
-   ```sh
-    python manage.py runserver localhost:8000
-    ```
 ### Frontend
 
-To start the local frontend server, follow these steps:
+```sh
+cd frontend
+npm install
+npm start
+```
+
+## Windows/IIS/MSSQL Deployment
+
+### Server Prerequisites
+
+Install on the Windows server:
+
+- Python 3.12 or newer
+- Node.js LTS
+- Microsoft ODBC Driver 18 for SQL Server
+- IIS with URL Rewrite and Application Request Routing
+- NSSM, if running the backend as a service
+- A SQL Server database and login for ScoreCore
+
+### Backend Environment
+
+Copy and edit the Windows environment template:
+
+```powershell
+Copy-Item django.windows.env.example django.env
+notepad django.env
+```
+
+Important values:
+
+```text
+DB_ENGINE=mssql
+MSSQL_HOST=localhost
+MSSQL_PORT=1433
+MSSQL_DATABASE=scorecore
+MSSQL_USER=scorecore_user
+MSSQL_PASSWORD=...
+MSSQL_DRIVER=ODBC Driver 18 for SQL Server
+MEDIA_ROOT=C:\inetpub\scorecore\media
+USE_REDIS=0
+DOCKER_FEATURE_ENABLED=0
+```
+
+### Backend Setup
+
+```powershell
+cd C:\inetpub\scorecore\backend
+py -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe manage.py migrate
+.\.venv\Scripts\python.exe manage.py collectstatic --noinput
+.\.venv\Scripts\python.exe manage.py createadmin
+```
+
+Run manually for testing:
+
+```powershell
+.\deploy\windows\start-backend.ps1 -ProjectRoot C:\inetpub\scorecore\backend -Port 8181
+```
+
+Install or reinstall the Windows service:
+
+```powershell
+.\deploy\windows\install-backend-service.ps1 -ProjectRoot C:\inetpub\scorecore\backend -Reinstall
+```
+
+### Frontend and IIS
+
+The production frontend is built with Vite. The IIS site root should point to:
+
+```text
+C:\inetpub\scorecore\frontend
+```
+
+Use `deploy/windows/frontend.web.config` as the IIS `web.config`. It contains:
+
+- public-path routing for `/scoring/`
+- API/admin/media/static/ws reverse proxy rules
+- static asset MIME mappings
+- upload request limit configuration for larger folder uploads
+
+Use `deploy/windows/frontend.static.web.config` only for a static-only smoke test before ARR/URL Rewrite are configured.
+
+### Deploy to vetweb01
+
+From a local checkout of this branch:
+
+```powershell
+$script = Get-Content -Raw .\deploy\windows\deploy-to-vetweb01.ps1
+$scriptBlock = [scriptblock]::Create($script)
+& $scriptBlock -RepoRoot "H:\wirklichnurneueprojekte\scoretool\scoreCore" -PublicUrl "/scoring/"
+```
+
+The script:
+
+- builds the frontend in `D:\scorecore-frontend-build`
+- deploys the frontend to `\\vetweb01\c$\inetpub\scorecore\frontend`
+- deploys backend files to `\\vetweb01\c$\inetpub\scorecore\backend`
+- copies deployment and SQL scripts to `\\vetweb01\c$\inetpub\scorecore\deploy` and `sql`
+- writes the IIS `web.config` with the configured public path
+
+After backend code changes, restart the service:
+
+```powershell
+sc.exe \\vetweb01 stop ScoreCoreBackend
+sc.exe \\vetweb01 start ScoreCoreBackend
+```
+
+### Useful Server Paths
+
+```text
+\\vetweb01\c$\inetpub\scorecore\frontend
+\\vetweb01\c$\inetpub\scorecore\backend
+\\vetweb01\c$\inetpub\scorecore\media
+\\vetweb01\c$\inetpub\scorecore\logs
+\\vetweb01\c$\inetpub\logs\LogFiles
+```
+
+For upload issues, check IIS first. A `413.1` status means IIS rejected the upload before Django received it.
+
+## SQL Server Seed Scripts
+
+SQL Server schema and seed scripts are in:
+
+```text
+deploy/sqlserver/001_create_scorecore_tables.sql
+deploy/sqlserver/002_seed_scorecore.sql
+```
+
+Run `001_create_scorecore_tables.sql` first, then `002_seed_scorecore.sql`. Adjust the SQLCMD variables in the seed script before running it in a real environment.
+
+## Data Migration
+
+For migrating from an existing Django/PostgreSQL instance:
+
+1. Stop writes on the old instance.
+2. Copy the complete `media` directory to the Windows server.
+3. Export data:
+
    ```sh
-    cd frontend
-    npm install
-    npm start
+   python manage.py dumpdata --natural-foreign --natural-primary --exclude contenttypes --exclude auth.permission --indent 2 > scorecore-data.json
    ```
 
-This will open a browser with the frontend visible.
+4. Run migrations on the MSSQL target.
+5. Import:
 
-## Windows/IIS/MSSQL
-
-This fork can be configured for Microsoft SQL Server with `DB_ENGINE=mssql`.
-See `docs/windows-iis-mssql.md` for the Windows/IIS deployment notes, example environment files, and IIS reverse-proxy configuration.
-
-[comment]: <> (## License)
-[comment]: <> (This project is licensed under the MIT License. See the LICENSE file for more details.)
-
-# Bonus
-## Securing your webserver with firewall (off-topic)
-If you run this on an accessible webserver (aka without VPN), you should secure it by only allowing the needed ports. i got you covered!
-
-   ```sh
-   # Install UFW on Debian/Ubuntu-based systems
-   sudo apt-get update
-   sudo apt-get install ufw
-   
-   # Install UFW on RHEL/CentOS-based systems
-   sudo yum install epel-release
-   sudo yum install ufw
-   
-   # Enable UFW
-   sudo ufw enable
-   
-   # Allow ports 22 (SSH), 80 (HTTP), and 443 (HTTPS)
-   sudo ufw allow 22/tcp
-   sudo ufw allow 80/tcp
-   sudo ufw allow 443/tcp
-   
-   # Deny all other incoming traffic
-   sudo ufw default deny incoming
-   
-   # Allow all outgoing traffic
-   sudo ufw default allow outgoing
-   
-   # Reload UFW to apply the changes
-   sudo ufw reload
-   
-   # Check UFW status
-   sudo ufw status
+   ```powershell
+   .\.venv\Scripts\python.exe manage.py loaddata scorecore-data.json
    ```
 
-Output should look like this:
-   ```
-   Status: active
-   
-   To                         Action      From
-   --                         ------      ----
-   22/tcp                     ALLOW       Anywhere
-   80/tcp                     ALLOW       Anywhere
-   443/tcp                    ALLOW       Anywhere
-   22/tcp (v6)                ALLOW       Anywhere (v6)
-   80/tcp (v6)                ALLOW       Anywhere (v6)
-   443/tcp (v6)               ALLOW       Anywhere (v6)
-   ```
+For very large instances, prefer a streaming migration script model by model.
 
-Still, this project does not yet support HTTPS. But you can using [Certbot](https://certbot.eff.org/)
+## Notes for Maintainers
 
+- Keep `origin` pointed at upstream: `https://github.com/RedCore161/scoreCore.git`.
+- Keep `fork` pointed at the Windows fork: `https://github.com/nutzlastfan/scoreCore.git`.
+- The active branch for this deployment is `windows-iis-mssql`.
+- Build from a local NTFS path where possible. Native npm binaries such as `esbuild.exe` can be unreliable on mapped/network-style paths.
+- The frontend uses `esbuild.charset = "ascii"` in `frontend/vite.config.ts` so icons and symbols are emitted as escapes instead of raw Unicode.
 
 ## Contact
 
-For any inquiries or issues, please open an issue on GitHub
-
-Happy coding! 🎉🚀
+For issues or deployment notes, use the GitHub issue tracker or document the operational finding in this branch.
